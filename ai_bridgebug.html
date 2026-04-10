@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>VORTEX OMNI-CORE v11.0 // THE MERSENNE SINGULARITY</title>
+    <title>VORTEX OMNI-CORE v11.0 // THE MERSENNE SINGULARITY + CRYPTO</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -72,29 +72,9 @@
         select { width: 100%; padding: 6px; background: #000; color: var(--laser-cyan); border: 1px solid var(--laser-cyan); font-family: inherit; font-weight: bold; outline: none;}
 
         /* VORTEX MERSENNE GRID (v72) */
-        #mersenneGrid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(13, 1fr);
-            gap: 4px;
-            width: 100%; height: 100%;
-            perspective: 800px;
-            padding: 10px;
-        }
-        .cube {
-            width: 100%; height: 100%;
-            position: relative;
-            transform-style: preserve-3d;
-            transition: transform 0.5s;
-        }
-        .cube div {
-            position: absolute; width: 100%; height: 100%;
-            border: 1px solid rgba(0, 210, 255, 0.3);
-            background: rgba(0, 20, 40, 0.8);
-            display: flex; justify-content: center; align-items: center;
-            font-size: 14px; font-weight: bold; color: var(--laser-cyan);
-            box-shadow: inset 0 0 10px rgba(0,210,255,0.1);
-        }
+        #mersenneGrid { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(13, 1fr); gap: 4px; width: 100%; height: 100%; perspective: 800px; padding: 10px; }
+        .cube { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.5s; }
+        .cube div { position: absolute; width: 100%; height: 100%; border: 1px solid rgba(0, 210, 255, 0.3); background: rgba(0, 20, 40, 0.8); display: flex; justify-content: center; align-items: center; font-size: 14px; font-weight: bold; color: var(--laser-cyan); box-shadow: inset 0 0 10px rgba(0,210,255,0.1); }
         .cube .front { transform: translateZ(20px); }
         .cube .right { transform: rotateY(90deg) translateZ(20px); color: var(--matrix-green); border-color: var(--matrix-green);}
         
@@ -103,17 +83,20 @@
         .audio-pulse { animation: hit 0.2s ease-out; }
         @keyframes hit { 0% { transform: scale(1.2); filter: brightness(2); } 100% { transform: scale(1); filter: brightness(1); } }
 
+        /* Fullscreen Rules */
         body.viewport-maximized header { display: none !important; }
         body.viewport-maximized .terminal-container { display: none !important; }
         body.viewport-maximized .main-grid { height: 100vh !important; grid-template-rows: 1fr !important; grid-template-columns: 100% !important; }
         body.viewport-maximized #panelLeft, body.viewport-maximized #panelRight { display: none !important; }
         body.viewport-maximized .maps-container { grid-column: 1 / -1 !important; grid-row: 1 / -1 !important; border: none !important; }
+        
+        input[type="password"] { width: 100%; padding: 6px; background: #000; color: var(--matrix-green); border: 1px solid var(--laser-cyan); font-family: inherit; font-size: 0.9em; outline: none; margin-bottom: 5px; }
     </style>
 </head>
 <body>
 
 <header>
-    <div class="title">VORTEX v11.0 // THE MERSENNE SINGULARITY</div>
+    <div class="title">VORTEX v11.0 // MERSENNE SINGULARITY & CRYPTO</div>
     <div style="display:flex; align-items:center; gap:10px;">
         <span id="nodeLabel" style="color:var(--matrix-green); font-size:0.7em; font-weight:bold;">NODE: VTX-LOCAL</span>
     </div>
@@ -121,7 +104,16 @@
 
 <div class="main-grid">
     <div class="panel" id="panelLeft">
-        <div class="panel-header">P2P DATA TUNNEL</div>
+        
+        <div class="panel-header">SECURE DATA VAULT (AES-GCM)</div>
+        <div class="data-box" style="border-color: var(--alert-red);">
+            <input type="password" id="cryptoPassword" placeholder="AES Password Key...">
+            <input type="file" id="cryptoFileInput" style="display:none;">
+            <button class="btn-action" style="border-color:var(--alert-red); color:var(--alert-red);" onclick="triggerCrypto('encrypt')">ENCRYPT PDF -> .DAT</button>
+            <button class="btn-action" style="border-color:var(--matrix-green); color:var(--matrix-green);" onclick="triggerCrypto('decrypt')">DECRYPT .DAT -> .PDF</button>
+        </div>
+
+        <div class="panel-header" style="margin-top:15px;">P2P DATA TUNNEL</div>
         <div style="display:flex; gap:5px; margin-bottom:10px;">
             <div id="wsBadge" class="badge">SIG OFFLINE</div>
             <div id="p2pBadge" class="badge">TUNNEL OFFLINE</div>
@@ -145,10 +137,6 @@
         <button class="btn-action" onclick="processCommand('init ai')" style="border-color:#ff00ff; color:#ff00ff;">1. INIT NEURAL BRIDGE</button>
         <button class="btn-action" onclick="processCommand('ai scan')" style="border-color:#ff00ff; color:#ff00ff;">2. RUN GEO-AI SCAN</button>
 
-        <div class="panel-header" style="margin-top:15px;">OMNI-SHADER CONTROLS</div>
-        <button class="btn-action" onclick="processCommand('view lidar')">VIEW LIDAR</button>
-        <button class="btn-action" onclick="processCommand('view cyclone')">VIEW CYCLONES</button>
-        <button class="btn-action" onclick="processCommand('view resonantie')">VIEW RESONANCE</button>
     </div>
 
     <div class="maps-container">
@@ -186,6 +174,11 @@
 
         <button class="btn-action" style="border-color:var(--lithos-amber); color:var(--lithos-amber);" onclick="toggleAudioEngine()" id="btnAudio">▶ START 110HZ PUTUTU ENGINE</button>
         
+        <div class="panel-header" style="margin-top:15px;">OMNI-SHADER CONTROLS</div>
+        <button class="btn-action" onclick="processCommand('view lidar')">VIEW LIDAR POINTCLOUD</button>
+        <button class="btn-action" onclick="processCommand('view cyclone')" style="border-color:var(--sirius-blue); color:var(--sirius-blue);">VIEW 6 CYCLONES</button>
+        <button class="btn-action" onclick="processCommand('view resonantie')" style="border-color:#ffb000; color:#ffb000;">VIEW RESONANCE</button>
+
         <div class="panel-header" style="margin-top:15px;">NEXUS COMMANDS</div>
         <button class="btn-action" onclick="processCommand('import kaartproviders')">LOAD GLOBAL MAPS</button>
         <button class="btn-action" onclick="processCommand('plot sabic')" style="border-color:var(--alert-red); color:var(--alert-red);">PLOT SABIC PFBS</button>
@@ -347,7 +340,6 @@
     function runSequencer() {
         if(!engineRunning) return;
 
-        // Gray Code jump logic
         cubeEls.forEach(c => { c.classList.remove('active-node', 'heavy-node'); c.style.transform = 'rotateY(0deg)'; });
         
         let p = M_EXPONENTS[stepIndex];
@@ -357,11 +349,10 @@
         else activeCube.classList.add('active-node');
         
         activeCube.classList.remove('audio-pulse');
-        void activeCube.offsetWidth; // trigger reflow
+        void activeCube.offsetWidth;
         activeCube.classList.add('audio-pulse');
         activeCube.style.transform = 'rotateY(-90deg)';
 
-        // Audio Modulation (Base 110Hz + Harmonic Shifts based on prime size)
         let freq = 110 + (Math.log10(p) * 20);
         if(filter) filter.frequency.setValueAtTime(freq, aCtx.currentTime);
 
@@ -369,27 +360,94 @@
         document.getElementById('lblFreq').innerText = freq.toFixed(1) + " Hz";
         document.getElementById('lblGortyn').innerText = gortyn[stepIndex];
 
-        // Propagate via P2P
         if(isP2P && dc && dc.readyState === 'open') {
             dc.send(JSON.stringify({ type: 'SEQ', idx: stepIndex }));
         }
 
         stepIndex = (stepIndex + 1) % 52;
-        setTimeout(runSequencer, 400); // 150 BPM
+        setTimeout(runSequencer, 400);
     }
 
-    // --- 5. HARDWARE SENSORS & COMPASS ---
+    // --- 5. AES CRYPTO ENGINE (PDF ENCRYPT/DECRYPT) ---
+    let cryptoMode = '';
+
+    async function deriveKey(password, salt) {
+        const enc = new TextEncoder();
+        const keyMaterial = await window.crypto.subtle.importKey(
+            "raw", enc.encode(password), {name: "PBKDF2"}, false, ["deriveKey"]
+        );
+        return window.crypto.subtle.deriveKey(
+            { name: "PBKDF2", salt: salt, iterations: 100000, hash: "SHA-256" },
+            keyMaterial, { name: "AES-GCM", length: 256 }, false, ["encrypt", "decrypt"]
+        );
+    }
+
+    function triggerCrypto(mode) {
+        const pwd = document.getElementById('cryptoPassword').value;
+        if(!pwd) { log("[ΣΦΑΛΜΑ] Απαιτείται κωδικός πρόσβασης (password).", "err"); return; }
+        cryptoMode = mode;
+        document.getElementById('cryptoFileInput').click();
+    }
+
+    document.getElementById('cryptoFileInput').addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if(!file) return;
+        const pwd = document.getElementById('cryptoPassword').value;
+
+        if (cryptoMode === 'encrypt') {
+            log(`[CRYPTO] Κρυπτογράφηση αρχείου: ${file.name}...`, "sys");
+            try {
+                const buffer = await file.arrayBuffer();
+                const salt = window.crypto.getRandomValues(new Uint8Array(16));
+                const iv = window.crypto.getRandomValues(new Uint8Array(12));
+                const key = await deriveKey(pwd, salt);
+                const encrypted = await window.crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, key, buffer);
+
+                const out = new Uint8Array(salt.length + iv.length + encrypted.byteLength);
+                out.set(salt, 0); out.set(iv, salt.length); out.set(new Uint8Array(encrypted), salt.length + iv.length);
+
+                const blob = new Blob([out], { type: 'application/octet-stream' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = file.name.replace('.pdf', '') + '_encrypted.dat';
+                a.click();
+                log("[CRYPTO] Η κρυπτογράφηση ολοκληρώθηκε επιτυχώς.", "ok");
+            } catch(err) { log("[ΣΦΑΛΜΑ] Αποτυχία κρυπτογράφησης.", "err"); }
+        } 
+        else if (cryptoMode === 'decrypt') {
+            log(`[CRYPTO] Αποκρυπτογράφηση αρχείου: ${file.name}...`, "sys");
+            try {
+                const buffer = await file.arrayBuffer();
+                const data = new Uint8Array(buffer);
+                const salt = data.slice(0, 16);
+                const iv = data.slice(16, 28);
+                const encrypted = data.slice(28);
+
+                const key = await deriveKey(pwd, salt);
+                const decrypted = await window.crypto.subtle.decrypt({ name: "AES-GCM", iv: iv }, key, encrypted);
+                
+                const blob = new Blob([decrypted], { type: 'application/pdf' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = file.name.replace('.dat', '') + '_decrypted.pdf';
+                a.click();
+                log("[CRYPTO] Αρχείο αποκρυπτογραφήθηκε με επιτυχία.", "ok");
+            } catch (err) {
+                log("[ΣΦΑΛΜΑ] Λάθος κωδικός πρόσβασης ή κατεστραμμένο αρχείο.", "err");
+            }
+        }
+        e.target.value = ''; // Reset input
+    });
+
+    // --- 6. SENSORS & COMPASS ---
     let streamActive = false;
     function handleOrientation(e) {
         let beta = e.beta || 0; let gamma = e.gamma || 0;
         gyroOffset = [gamma / 45.0, beta / 45.0];
-
         let alpha = e.alpha || 0;
         heading = e.webkitCompassHeading ? e.webkitCompassHeading : (360 - alpha);
-
         const dial = document.getElementById('compassDial');
         if(dial) dial.style.transform = `rotate(${-heading}deg)`;
-
         if(isP2P && dc && dc.readyState === 'open' && !isRemoteSync) {
             if (Math.random() < 0.1) dc.send(JSON.stringify({ type: 'SYNC_STATE', payload: getSystemState() }));
         }
@@ -401,7 +459,6 @@
         } else {
             window.addEventListener('deviceorientationabsolute', handleOrientation, true) || window.addEventListener('deviceorientation', handleOrientation, true);
         }
-        
         const vid = document.getElementById('sensorCam');
         if(!streamActive) {
             try {
@@ -416,7 +473,7 @@
         }
     }
 
-    // --- 6. P2P WEBRTC (LOCAL BUS) ---
+    // --- 7. P2P WEBRTC (LOCAL BUS) ---
     function initP2P() {
         role = document.getElementById('roleSelect').value;
         log(`P2P Bus actief als ${role.toUpperCase()}.`, "sys", false);
@@ -465,7 +522,7 @@
             if (d.type === 'CMD') executeCoreCommand(d.cmd, true);
             else if (d.type === 'SYNC_STATE') applySystemState(d.payload);
             else if (d.type === 'LOG') log(d.msg, d.msgType, false);
-            else if (d.type === 'SEQ') { // Mirror Sequencer via P2P
+            else if (d.type === 'SEQ') { 
                 cubeEls.forEach(c => { c.classList.remove('active-node', 'heavy-node'); c.style.transform = 'rotateY(0deg)'; });
                 let p = M_EXPONENTS[d.idx]; let activeCube = cubeEls[d.idx];
                 if (p > 1000000) activeCube.classList.add('heavy-node'); else activeCube.classList.add('active-node');
@@ -476,7 +533,7 @@
         };
     }
 
-    // --- 7. STATE SYNC & CLI ---
+    // --- 8. STATE SYNC & CLI ---
     function getSystemState() {
         return { lat: map.getCenter().lat, lng: map.getCenter().lng, zoom: map.getZoom(), shaderMode: shaderMode, mirror: mState, polar: pState, aiActive: aiActive, gyroX: gyroOffset[0], gyroY: gyroOffset[1] };
     }
@@ -508,7 +565,7 @@
         if (cmd === 'minor' || cmd === 'mirror') cmd = 'mirror all';
         if (cmd === 'pollarflip' || cmd === 'polarflip') cmd = 'polarflip all';
 
-        if(!fromPeer && isP2P && dc && dc.readyState === 'open' && cmd !== 'connect p2p') {
+        if(!fromPeer && isP2P && dc && dc.readyState === 'open' && cmd !== 'connect p2p' && cmd !== 'encrypt pdf' && cmd !== 'decrypt pdf') {
             dc.send(JSON.stringify({ type: 'CMD', cmd: cmd }));
         }
 
@@ -516,6 +573,8 @@
         else if (cmd === 'view cyclone') { shaderMode = 3; document.getElementById('z-label').innerText = "Z-DOMAIN: CYCLONES"; }
         else if (cmd === 'view resonantie') { shaderMode = 6; document.getElementById('z-label').innerText = "Z-DOMAIN: RESONANCE"; }
         else if (cmd === 'enable sensors') { initSensors(); }
+        else if (cmd === 'encrypt pdf') { triggerCrypto('encrypt'); }
+        else if (cmd === 'decrypt pdf') { triggerCrypto('decrypt'); }
         else if (cmd === 'mirror all') { mState = mState ? 0 : 1; log("Mirror X toegepast.", "sys"); }
         else if (cmd === 'polarflip all') { pState = pState ? 0 : 1; log("Radiale inversie toegepast.", "sys"); }
         else if (cmd === 'reset transforms') { mState = 0; pState = 0; }
@@ -550,7 +609,7 @@
             if(engineRunning) toggleAudioEngine();
             log("Systeem gereinigd.", "sys"); 
         }
-        else if(!fromPeer) log(`Commando onbekend.`, 'err', false);
+        else if(!fromPeer && cmd !== "") log(`Commando onbekend.`, 'err', false);
 
         if (isP2P && dc && dc.readyState === 'open' && !fromPeer) {
             applySystemState(getSystemState()); 
@@ -568,7 +627,7 @@
         if(e.key === 'Enter') { processCommand(e.target.value); e.target.value = ''; } 
     });
 
-    log(`VORTEX Omni-Core v11.0 (ULTIMATE MASTER) Opgestart.`, 'ok', false);
+    log(`VORTEX Omni-Core v11.0 (ULTIMATE MASTER + SECURE VAULT) Opgestart.`, 'ok', false);
 </script>
 </body>
 </html>
