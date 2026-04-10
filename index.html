@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>VORTEX OMNI-CORE v5.6 // PROVIDER-SYNC</title>
+    <title>VORTEX OMNI-CORE v6.1 // NEURAL-SYNC</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -18,16 +18,24 @@
         * { box-sizing: border-box; cursor: crosshair; touch-action: manipulation; }
         body, html { background-color: var(--fc-100-black); color: #e0e0e0; font-family: 'Courier New', Courier, monospace; margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; display: flex; flex-direction: column; overscroll-behavior: none; }
         
-        header { flex: 0 0 50px; background: #000; border-bottom: 2px solid var(--laser-cyan); padding: 0 15px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 0 15px rgba(0, 229, 255, 0.2); }
+        header { flex: 0 0 50px; background: #000; border-bottom: 2px solid var(--laser-cyan); padding: 0 15px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; box-shadow: 0 0 15px rgba(0, 229, 255, 0.2); transition: 0.3s; }
         .title { color: var(--laser-cyan); font-size: 1.2em; font-weight: bold; letter-spacing: 2px; }
         
-        .main-grid { display: grid; grid-template-columns: 320px 1fr 320px; grid-template-rows: 1fr 220px; width: 100%; height: calc(100vh - 50px); transition: all 0.5s ease; }
+        /* LAYOUT: 25% | 50% | 25% */
+        .main-grid { display: grid; grid-template-columns: 25% 50% 25%; grid-template-rows: 1fr 220px; width: 100%; height: calc(100vh - 50px); transition: all 0.4s ease; }
         
-        .panel { background: var(--panel-bg); border-right: 1px solid var(--border-dim); border-bottom: 1px solid var(--border-dim); padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; z-index: 10; -webkit-overflow-scrolling: touch; }
+        .panel { background: var(--panel-bg); border-bottom: 1px solid var(--border-dim); padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; z-index: 10; -webkit-overflow-scrolling: touch; }
         .panel-header { color: var(--lithos-amber); font-size: 0.85em; font-weight: bold; border-bottom: 1px solid var(--lithos-amber); padding-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
 
-        .maps-container { display: flex; flex-direction: column; grid-column: 2 / 3; grid-row: 1 / 3; position: relative; background: transparent; }
-        
+        #panelLeft { grid-column: 1 / 2; grid-row: 1 / 2; border-right: 2px solid var(--laser-cyan); }
+        .maps-container { display: flex; flex-direction: column; grid-column: 2 / 3; grid-row: 1 / 2; position: relative; background: transparent; }
+        #panelRight { grid-column: 3 / 4; grid-row: 1 / 2; border-left: 2px solid var(--laser-cyan); }
+
+        /* Kiosk / Viewport Resize Buttons */
+        .vp-resize-btns { position: absolute; top: 10px; right: 10px; z-index: 1000; display: flex; gap: 5px; }
+        .btn-vp { background: rgba(0,0,0,0.8); border: 1px solid var(--laser-cyan); color: var(--laser-cyan); width: 35px; height: 35px; cursor: pointer; font-weight: bold; font-size: 1.2em; display: flex; align-items: center; justify-content: center; transition: 0.2s; border-radius: 4px; }
+        .btn-vp:hover { background: var(--laser-cyan); color: #000; box-shadow: 0 0 10px var(--laser-cyan); }
+
         #sensorCam { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; filter: grayscale(0.2) sepia(0.8) hue-rotate(130deg) contrast(1.3) brightness(0.7); }
         .cam-scanlines { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 4px, 3px 100%; pointer-events: none; z-index: 1; display: none; opacity: 0.8; }
 
@@ -42,28 +50,27 @@
         #trackerMap { flex: 1.3; background: transparent; border-bottom: 1px solid var(--laser-cyan); position: relative; z-index: 2; transition: opacity 0.5s ease; }
         .leaflet-container { background: transparent !important; }
         
-        /* Custom Leaflet Controls for Dark Theme */
+        /* Leaflet Controls Custom UI (V6.1) */
+        .leaflet-top.leaflet-left { padding-top: 35px; } /* Pushes layers control below the label */
         .leaflet-control-layers { background: rgba(5, 10, 15, 0.9) !important; color: var(--matrix-green) !important; border: 1px solid var(--laser-cyan) !important; font-family: var(--font-mono); font-size: 0.8em; }
         .leaflet-control-layers-toggle { filter: invert(1) hue-rotate(180deg); }
-        .leaflet-control-layers-expanded { padding: 10px; }
+        .leaflet-control-zoom a { background: rgba(5, 10, 15, 0.9) !important; color: var(--matrix-green) !important; border: 1px solid var(--laser-cyan) !important; font-weight: bold; }
+        .leaflet-control-zoom a:hover { background: var(--laser-cyan) !important; color: #000 !important; box-shadow: 0 0 10px var(--laser-cyan); }
         
         #stratiMap { flex: 1; background: transparent; position: relative; overflow: hidden; z-index: 2; }
         canvas { width: 100%; height: 100%; display: block; filter: contrast(1.2) brightness(1.1); position: absolute; top: 0; left: 0; z-index: 3; mix-blend-mode: screen; opacity: 0.9; }
 
         .map-label { position: absolute; top: 10px; left: 10px; z-index: 400; background: rgba(0,0,0,0.8); padding: 4px 8px; border: 1px solid var(--laser-cyan); font-size: 0.65em; color: var(--laser-cyan); pointer-events: none; }
-        .sync-label { position: absolute; top: 10px; right: 10px; z-index: 400; background: rgba(217,37,52,0.8); padding: 4px 8px; border: 1px solid var(--alert-red); font-size: 0.65em; color: #fff; pointer-events: none; display: none; font-weight: bold; letter-spacing: 1px; animation: blink 1.5s infinite; }
+        .sync-label { position: absolute; top: 10px; right: 95px; z-index: 400; background: rgba(217,37,52,0.8); padding: 4px 8px; border: 1px solid var(--alert-red); font-size: 0.65em; color: #fff; pointer-events: none; display: none; font-weight: bold; letter-spacing: 1px; animation: blink 1.5s infinite; }
 
         .sirius-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 500; mix-blend-mode: screen; opacity: 0.15; background: repeating-linear-gradient(0deg, var(--laser-cyan) 0px, transparent 1px, transparent 3px); }
-        .doppler-red { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:501; opacity:0; background: radial-gradient(circle at 30% 50%, var(--alert-red) 0%, transparent 60%); mix-blend-mode: screen; transition: 0.5s; }
-        .doppler-blue { position: absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:501; opacity:0; background: radial-gradient(circle at 70% 50%, var(--sirius-blue) 0%, transparent 60%); mix-blend-mode: screen; transition: 0.5s; }
 
-        .terminal-container { grid-column: 1 / 4; grid-row: 2 / 3; background: #000; border-top: 2px solid var(--laser-cyan); display: flex; flex-direction: column; z-index: 10; }
+        .terminal-container { grid-column: 1 / 4; grid-row: 2 / 3; background: #000; border-top: 2px solid var(--laser-cyan); display: flex; flex-direction: column; z-index: 10; transition: 0.3s; }
         .terminal-output { flex-grow: 1; padding: 12px; overflow-y: auto; font-size: 0.75em; line-height: 1.3; color: #8af; }
         .terminal-input-wrapper { display: flex; padding: 8px 15px; background: #050508; border-top: 1px solid #1a2a3a; align-items: center; }
         .cli-prompt { color: var(--laser-cyan); margin-right: 10px; font-weight: bold; }
         #cliInput { flex-grow: 1; background: transparent; border: none; color: var(--matrix-green); font-family: inherit; font-size: 1em; outline: none; }
 
-        /* Buttons & Data UI */
         .btn-action { background: #111; color: var(--laser-cyan); border: 1px solid var(--laser-cyan); padding: 12px 8px; font-family: inherit; font-size: 0.75em; cursor: pointer; transition: 0.2s; width: 100%; font-weight: bold; margin-top: 5px; border-radius: 4px; }
         .btn-action:active { background: var(--laser-cyan); color: #000; box-shadow: 0 0 15px var(--laser-cyan); transform: scale(0.98); }
         @media (hover: hover) { .btn-action:hover { background: var(--laser-cyan); color: #000; box-shadow: 0 0 12px var(--laser-cyan); } }
@@ -77,30 +84,31 @@
 
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
-        /* ========================================================= */
-        /* DUAL-SCREEN CSS LOGICA                                    */
-        /* ========================================================= */
+        /* TRUE FULLSCREEN KIOSK MODE */
+        body.viewport-maximized header { display: none !important; }
+        body.viewport-maximized .terminal-container { display: none !important; }
+        body.viewport-maximized .main-grid { height: 100vh !important; grid-template-rows: 1fr !important; grid-template-columns: 100% !important; }
+        body.viewport-maximized #panelLeft, body.viewport-maximized #panelRight { display: none !important; }
+        body.viewport-maximized .maps-container { grid-column: 1 / -1 !important; grid-row: 1 / -1 !important; border: none !important; }
 
-        /* Rol: VIEWPORT (Linker Scherm - Alleen AR Camera / Kaart) */
+        /* P2P Rol: VIEWPORT (Linker Scherm) */
         body.role-viewport #panelLeft, body.role-viewport #panelRight { display: none !important; }
         body.role-viewport .main-grid { grid-template-columns: 1fr !important; }
-        body.role-viewport .maps-container { grid-column: 1 / 2 !important; grid-row: 1 / 2 !important; }
-        body.role-viewport .terminal-container { grid-column: 1 / 2 !important; }
+        body.role-viewport .maps-container { grid-column: 1 / 2 !important; }
 
-        /* Rol: CONTROLS (Rechter Scherm - Alleen Knoppen) */
+        /* P2P Rol: CONTROLS (Rechter Scherm) */
         body.role-controls .maps-container { display: none !important; }
         body.role-controls .main-grid { grid-template-columns: 1fr 1fr !important; }
-        body.role-controls #panelLeft { grid-column: 1 / 2 !important; grid-row: 1 / 2 !important; border-right: 1px solid var(--laser-cyan); }
-        body.role-controls #panelRight { grid-column: 2 / 3 !important; grid-row: 1 / 2 !important; }
-        body.role-controls .terminal-container { grid-column: 1 / 3 !important; }
+        body.role-controls #panelLeft { grid-column: 1 / 2 !important; border-right: 1px solid var(--laser-cyan); }
+        body.role-controls #panelRight { grid-column: 2 / 3 !important; border-left: none; }
 
         @media screen and (max-width: 950px) {
             body, html { overflow-y: auto; height: 100vh; display: block; }
             .main-grid { display: flex; flex-direction: column; height: auto; min-height: 100vh; }
             .maps-container { height: 50vh; min-height: 400px; width: 100%; order: 1; border-bottom: 2px solid var(--laser-cyan); }
-            .panel { border-right: none; border-bottom: 1px solid var(--border-dim); order: 2; padding: 10px; }
-            .terminal-container { height: 30vh; min-height: 200px; width: 100%; order: 3; border-top: 2px solid var(--laser-cyan); }
-            
+            #panelLeft { order: 2; border-right: none; border-bottom: 1px solid var(--border-dim); }
+            #panelRight { order: 3; border-left: none; border-bottom: 1px solid var(--border-dim); }
+            .terminal-container { height: 30vh; min-height: 200px; width: 100%; order: 4; border-top: 2px solid var(--laser-cyan); }
             body.role-controls .main-grid, body.role-viewport .main-grid { display: flex !important; flex-direction: column; }
         }
     </style>
@@ -108,8 +116,8 @@
 <body class="role-single">
 
 <header>
-    <div class="title">VORTEX v5.6 // PROVIDER-SYNC</div>
-    <div id="sysID" style="color:var(--matrix-green); font-size:0.7em; font-weight:bold;">UI-MODE: SINGLE</div>
+    <div class="title">VORTEX v6.1 // NEURAL-SYNC</div>
+    <div id="sysID" style="color:var(--matrix-green); font-size:0.7em; font-weight:bold;">UI-MODE: SINGLE (25/50/25)</div>
 </header>
 
 <div class="main-grid">
@@ -152,6 +160,11 @@
     </div>
 
     <div class="maps-container" id="mapsWrapper">
+        <div class="vp-resize-btns">
+            <button class="btn-vp" onclick="processCommand('fullscreen on')" title="Schermvullend maken (Kiosk)">⛶</button>
+            <button class="btn-vp" onclick="processCommand('fullscreen off')" title="Herstel weergave (Split)">✕</button>
+        </div>
+
         <video id="sensorCam" autoplay playsinline></video>
         <div class="cam-scanlines" id="camScanlines"></div>
 
@@ -176,7 +189,7 @@
         </div>
     </div>
 
-    <div class="panel" id="panelRight" style="grid-column: 3 / 4; grid-row: 1 / 3;">
+    <div class="panel" id="panelRight">
         <div class="panel-header">OMNI-SHADER CONTROLS</div>
         <button class="btn-action" onclick="processCommand('view lidar')">VIEW LIDAR POINTCLOUD</button>
         <button class="btn-action" onclick="processCommand('view cyclone')" style="border-color:var(--sirius-blue); color:var(--sirius-blue);">VIEW 6 CYCLONES</button>
@@ -184,16 +197,18 @@
         <button class="btn-action" onclick="processCommand('view resonantie')" style="border-color:#ffb000; color:#ffb000;">VIEW CYMATIC RESONANCE</button>
         
         <div class="panel-header" style="margin-top:15px;">AR SENSOR FUSION</div>
-        <button class="btn-action" onclick="processCommand('enable sensors')" style="background:var(--matrix-green); color:#000;">1. INIT FULL SENSOR-FUSION</button>
+        <button class="btn-action" onclick="processCommand('enable sensors')" style="background:var(--matrix-green); color:#000;">1. INIT SENSOR-FUSION</button>
         <button class="btn-action" onclick="processCommand('calibrate sensor')" style="border-color:var(--laser-cyan); color:var(--laser-cyan);">2. CALIBRATE ZERO-POINT</button>
         <button class="btn-action" onclick="processCommand('sync camera')" style="border-color:var(--alert-red); color:var(--alert-red);">3. TOGGLE AR HUD-SYNC</button>
 
-        <div class="panel-header" style="margin-top:15px;">MATHEMATICAL NEXUS</div>
-        <button class="btn-action" onclick="processCommand('plot mersenne')" style="border-color:#ff00ff; color:#ff00ff;">PLOT MERSENNE HEXAGON (127)</button>
+        <div class="panel-header" style="margin-top:15px;">MATHEMATICAL & AI NEXUS</div>
+        <button class="btn-action" onclick="processCommand('init ai')" style="border-color:#ff00ff; color:#ff00ff;">ACTIVATE NEURAL BRIDGE</button>
+        <button class="btn-action" onclick="processCommand('ai scan')" style="border-color:#ff00ff; color:#ff00ff;">AI PATTERN RECOGNITION</button>
+        <button class="btn-action" onclick="processCommand('plot mersenne')" style="margin-top:15px;">PLOT MERSENNE HEXAGON</button>
         <button class="btn-action" onclick="processCommand('import kaartproviders')" style="background:var(--laser-cyan); color:#000;">LOAD MAP PROVIDERS</button>
         <button class="btn-action" onclick="processCommand('bodemkaart scan')" style="border-color:var(--laser-cyan); color:var(--laser-cyan);">TOGGLE BODEMKAART WMS</button>
         <button class="btn-action" onclick="processCommand('plot target')" style="border-color:#ffb000; color:#ffb000;">PLOT AT RETICLE TARGET</button>
-        <button class="btn-action" onclick="processCommand('clear')" style="border-color:var(--alert-red); color:var(--alert-red);">CLEAR ALL PLOTS & SHADERS</button>
+        <button class="btn-action" onclick="processCommand('clear')" style="border-color:var(--alert-red); color:var(--alert-red);">CLEAR ALL PLOTS</button>
 
         <div class="data-box" style="margin-top:15px;">
             <div class="stat-row"><span>COMPASS (α):</span><span class="sensor-data" id="tel-alpha">0.00°</span></div>
@@ -303,11 +318,26 @@
     const term = document.getElementById('termOut');
     const sysIdEl = document.getElementById('sysID');
     
+    let aiActive = false;
+
     const log = (msg, type = 'sys') => {
         const c = { sys: '#8af', ok: '#0f4', err: '#f44', cmd: '#0ff', data: '#ffb000', math: '#ff00ff' }[type] || '#fff';
         term.innerHTML += `<div><span style="color:#555;">[${new Date().toLocaleTimeString()}]</span> <span style="color:${c}">${msg}</span></div>`;
         term.scrollTop = term.scrollHeight;
     };
+
+    // --- FULLSCREEN VIEWPORT TOGGLE ---
+    function toggleViewportMax(maximize) {
+        if(maximize) {
+            document.body.classList.add('viewport-maximized');
+            log("Viewport geëxpandeerd naar FULL KIOSK MODE.", "sys");
+        } else {
+            document.body.classList.remove('viewport-maximized');
+            log("Viewport hersteld naar weergave (25/50/25).", "sys");
+        }
+        setTimeout(() => { map.invalidateSize(); }, 300);
+        setTimeout(() => { map.invalidateSize(); }, 600);
+    }
 
     // --- DUAL-SCREEN ROLE MANAGEMENT ---
     let currentRole = 'single';
@@ -317,12 +347,14 @@
         if(role === 'viewport') {
             log("UI Config: VIEWPORT (Linker Scherm). Knoppen verborgen.", "ok");
             sysIdEl.innerText = "UI-MODE: VIEWPORT (LEFT)";
+            setTimeout(() => { map.invalidateSize(); }, 400);
         } else if(role === 'controls') {
             log("UI Config: CONTROLS (Rechter Scherm). Camera verborgen.", "ok");
             sysIdEl.innerText = "UI-MODE: CONTROLS (RIGHT)";
         } else {
-            log("UI Config: SINGLE SCREEN (Standaard).", "ok");
-            sysIdEl.innerText = "UI-MODE: SINGLE";
+            log("UI Config: SINGLE SCREEN (25/50/25 Layout).", "ok");
+            sysIdEl.innerText = "UI-MODE: SINGLE (50% VIEWPORT)";
+            setTimeout(() => { map.invalidateSize(); }, 400);
         }
     }
 
@@ -364,12 +396,13 @@
     }
 
     // --- MAP & DATA SYNC ---
-    const map = L.map('trackerMap', { zoomControl: false, scrollWheelZoom: false }).setView([52.25, 5.21], 11);
+    const map = L.map('trackerMap', { zoomControl: false, scrollWheelZoom: true }).setView([52.25, 5.21], 11);
     const baseTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
     
-    let layerControl = null; // Voor kaartproviders
-    
-    // Extra map layers
+    // V6.1: Voeg echte Leaflet Zoom Controls toe aan rechter onderkant
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    let layerControl = null; 
     const satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 });
     const topoMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 });
     const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 });
@@ -591,55 +624,60 @@
         }
     }
 
-    // --- CLI PROCESSOR (100% P2P SYNCED) ---
-    function executeCoreCommand(cmd, fromPeer = false) {
+    // --- CLI PROCESSOR (AUTO-CORRECT & AI) ---
+    function executeCoreCommand(cmdRaw, fromPeer = false) {
+        let cmd = cmdRaw.toLowerCase().trim();
+        if(cmd.startsWith('vieuw ')) cmd = cmd.replace('vieuw ', 'view ');
+        if(cmd === 'import bodemkaart scan' || cmd === 'import bodemkaart') cmd = 'bodemkaart scan';
+        if(cmd === 'herken patroon' || cmd === 'scan patroon' || cmd === 'analyze') cmd = 'ai scan';
+
         if(!fromPeer && isP2PConnected && cmd !== 'shift doppler' && cmd !== 'connect p2p') {
             p2pChannel.postMessage({type: 'CMD', cmd: cmd});
         }
 
-        if(cmd === 'help') {
+        if(cmd === 'ai bridge' || cmd === 'init ai') {
+            log("[AI] Neurale brug initialiseren...", "sys");
+            setTimeout(() => { log("[AI] Quantum-processors gesynchroniseerd.", "math"); }, 800);
+            setTimeout(() => { 
+                aiActive = true; log("[AI] Patroonherkenning Actief. Klaar voor input.", "ok"); 
+                document.getElementById('sysID').innerText += " | AI LINKED"; document.getElementById('sysID').style.color = "#ff00ff";
+            }, 1600);
+            return;
+        }
+        else if(cmd === 'ai scan') {
+            if(!aiActive) { log("FOUT: Neurale brug offline. Typ 'init ai' eerst.", "err"); return; }
+            log("[AI] Raster wordt geanalyseerd...", "sys");
+            setTimeout(() => log("[AI] Spectrale anomalie gedetecteerd in sub-laag 4.", "data"), 1000);
+            setTimeout(() => {
+                log("[AI] Mersenne-patroon match: 99.8%. Doel gemarkeerd.", "ok");
+                const c = map.getCenter(); 
+                L.circle(c, {radius: 400, color: '#ff00ff', fillOpacity: 0.2, weight: 2, dashArray: '5, 5'}).addTo(targetLayerGroup).bindPopup("AI Target Locked");
+            }, 2000);
+            return;
+        }
+        else if(cmd === 'help') {
             log("--- AVAILABLE COMMANDS ---", "sys");
             log("> import kaartproviders / bodemkaart scan", "cmd");
             log("> plot mersenne / plot target / clear plotter", "cmd");
             log("> view lidar / scan nebula / view cyclone / view droste / view resonantie", "cmd");
             log("> enable sensors / calibrate sensor / sync camera", "cmd");
             log("> mirror all / polarflip all / reset transforms", "cmd");
-            log("> connect p2p / reset ui", "cmd");
-            log("> ai bridge / init ai", "cmd");
+            log("> connect p2p / reset ui / fullscreen on / fullscreen off", "cmd");
+            log("> init ai / ai scan", "cmd");
             return;
         }
-        else if(cmd === 'ai bridge' || cmd === 'init ai') {
-            log("[AI] Neurale brug initialiseren...", "sys");
-            setTimeout(() => { log("[AI] Quantum-processors gesynchroniseerd.", "math"); }, 800);
-            setTimeout(() => { 
-                log("[AI] Patroonherkenning Actief. Klaar voor input.", "ok"); 
-                document.getElementById('sysID').innerText += " | AI LINKED";
-                document.getElementById('sysID').style.color = "#ff00ff";
-            }, 1600);
-            return;
-        }
-        else if(cmd === 'reset ui' || cmd === 'set single') {
-            setRole('single'); return;
-        }
-
-        if(cmd === 'connect p2p') { 
-            log("P2P Handshake gestart...", "sys"); 
-            setRole('controls'); 
-            p2pChannel.postMessage({type: 'SYN', id: local_id}); 
-        }
+        
+        if(cmd === 'fullscreen on' || cmd === 'maximize') { toggleViewportMax(true); }
+        else if(cmd === 'fullscreen off' || cmd === 'minimize') { toggleViewportMax(false); }
+        else if(cmd === 'reset ui' || cmd === 'set single') { setRole('single'); return; }
+        else if(cmd === 'connect p2p') { log("P2P Handshake gestart...", "sys"); setRole('controls'); p2pChannel.postMessage({type: 'SYN', id: local_id}); }
         else if(cmd === 'import kaartproviders') {
             if(!layerControl) {
-                const baseMapProviders = {
-                    "VORTEX Dark": baseTileLayer,
-                    "Satelliet (Esri)": satellite,
-                    "Topografisch (Esri)": topoMap,
-                    "Standaard (OSM)": osm
-                };
-                layerControl = L.control.layers(baseMapProviders, null, { collapsed: true }).addTo(map);
-                log("Kaartproviders geïmporteerd. UI-element toegevoegd aan Viewport.", "ok");
-            } else {
-                log("Kaartproviders zijn al geladen.", "sys");
-            }
+                const baseMapProviders = { "VORTEX Dark": baseTileLayer, "Satelliet (Esri)": satellite, "Topografisch (Esri)": topoMap, "Standaard (OSM)": osm };
+                // V6.1: Map providers UI on the top-left
+                layerControl = L.control.layers(baseMapProviders, null, { position: 'topleft', collapsed: true }).addTo(map);
+                log("Kaartproviders geïmporteerd. UI-element (Links) toegevoegd.", "ok");
+            } else { log("Kaartproviders zijn al geladen.", "sys"); }
         }
         else if(cmd === 'deploy') { runDeploy(); }
         else if(cmd === 'qr sync') { generateMobileQR(); }
@@ -663,8 +701,7 @@
         }
         else if(cmd === 'shift doppler') {
             if(!fromPeer) {
-                const r = Math.random(); const b = 1 - r;
-                applyDoppler(r, b);
+                const r = Math.random(); const b = 1 - r; applyDoppler(r, b);
                 if(isP2PConnected) p2pChannel.postMessage({type: 'DOPPLER', r: r, b: b});
                 log("Doppler frequentie-verschuiving toegepast.", "sys");
             }
@@ -692,15 +729,20 @@
             document.getElementById('st-mir').innerText = "OFF"; document.getElementById('st-pol').innerText = "OFF";
             document.getElementById('termOut').innerHTML = ''; shaderMode=0; zLabel.innerText = `Z-DOMAIN: STRATIGRAFIE`;
         }
-        else if(!fromPeer) log(`Commando '${cmd}' niet herkend. Typ 'help'.`, 'err');
+        else if(!fromPeer && cmd !== "") log(`Commando '${cmdRaw}' niet herkend. Typ 'help'.`, 'err');
     }
 
     function processCommand(input) {
-        const cmd = input.toLowerCase().trim(); log(`vortex@omni:~# ${cmd}`, 'cmd'); executeCoreCommand(cmd, false);
+        if(!input) return;
+        log(`vortex@omni:~# ${input}`, 'cmd'); 
+        executeCoreCommand(input, false);
     }
-    document.getElementById('cliInput').addEventListener('keydown', (e) => { if(e.key === 'Enter') { processCommand(e.target.value); e.target.value = ''; } });
+    
+    document.getElementById('cliInput').addEventListener('keydown', (e) => { 
+        if(e.key === 'Enter') { processCommand(e.target.value); e.target.value = ''; } 
+    });
 
-    log(`VORTEX Omni-Core v5.6 (Provider-Sync) Opgestart.`, 'ok');
+    log(`VORTEX Omni-Core v6.1 (UI-Ergonomics) Opgestart.`, 'ok');
     log(`Typ 'help' voor een lijst met commando's.`, 'sys');
 </script>
 </body>
