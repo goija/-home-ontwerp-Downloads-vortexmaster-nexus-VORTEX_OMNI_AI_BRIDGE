@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VORTEX // INTEGRATED COCKPIT v154.0</title>
+    <style>
+        :root {
+            --bg: #050608; --panel: #0a0d11; --border: #1a2228;
+            --main: #00ffcc; --ai-glow: #00a2ff; --accent: #ff9900; --text: #cbd5e1;
+            --font-mono: 'Fira Code', 'Courier New', monospace;
+        }
+
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-thumb { background: var(--ai-glow); border-radius: 10px; }
+
+        body { margin: 0; padding: 0; height: 100vh; background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; overflow: hidden; }
+
+        header { 
+            height: 45px; border-bottom: 1px solid var(--border); background: var(--panel);
+            display: flex; align-items: center; padding: 0 20px; justify-content: space-between;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.5);
+        }
+
+        main { 
+            display: grid; height: calc(100vh - 45px); gap: 1px; background: var(--border);
+            grid-template-columns: 16.6vw 33.3vw 50vw;
+        }
+
+        @media (max-width: 1024px) {
+            main { grid-template-columns: 1fr; grid-template-rows: 55vh 1fr; }
+            .column:nth-child(1) { display: none; }
+        }
+
+        .column { background: var(--bg); display: flex; flex-direction: column; overflow: hidden; }
+        .col-header { 
+            padding: 12px; font-size: 0.65rem; font-weight: bold; text-transform: uppercase; 
+            border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.4); letter-spacing: 2px;
+            color: var(--ai-glow); display: flex; justify-content: space-between;
+        }
+
+        /* Column 1: Sources */
+        .source-list { flex: 1; overflow-y: auto; }
+        .source-item { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.7rem; cursor: pointer; transition: 0.2s; }
+        .source-item:hover { background: rgba(0, 255, 204, 0.05); }
+        .source-item.active { border-left: 2px solid var(--main); background: rgba(0, 255, 204, 0.02); }
+
+        /* Column 2: AI Synth */
+        .ai-engine { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        .ai-terminal { flex: 1; overflow-y: auto; padding: 15px; font-size: 0.85rem; line-height: 1.6; font-family: var(--font-mono); }
+        .ai-response { margin-bottom: 20px; padding: 12px; border: 1px solid rgba(0, 162, 255, 0.1); background: rgba(0, 162, 255, 0.02); border-radius: 4px; }
+        
+        .input-bar { padding: 12px; background: #000; border-top: 1px solid var(--border); display: flex; gap: 10px; }
+        .v-input { flex: 1; background: transparent; border: none; color: var(--main); font-family: var(--font-mono); outline: none; font-size: 0.85rem; }
+
+        /* Column 3: Viewport + Integrated Cockpit */
+        .viewport-frame { flex: 1; background: #000; position: relative; display: flex; flex-direction: column; }
+        iframe { flex: 1; border: none; width: 100%; }
+        
+        /* De nieuwe Cockpit Overlay onderin het viewport paneel */
+        .cockpit-controls { 
+            padding: 15px; background: rgba(10, 13, 17, 0.95); 
+            border-top: 1px solid var(--border);
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+        }
+        .slider-box { display: flex; flex-direction: column; gap: 5px; }
+        .slider-info { display: flex; justify-content: space-between; font-size: 0.6rem; color: var(--main); font-family: var(--font-mono); }
+        input[type="range"] { width: 100%; accent-color: var(--main); height: 4px; cursor: crosshair; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div style="font-weight: bold; letter-spacing: 1px;">VORTEX <span style="color:var(--main)">COCKPIT_INTEGRATION</span> <span style="color:var(--ai-glow); font-size: 0.6rem;">v154.0</span></div>
+    <div id="clock" style="font-family: var(--font-mono); color: var(--main); font-size: 0.75rem;">00:00:00</div>
+</header>
+
+<main>
+    <section class="column">
+        <div class="col-header">Intelligence Sources</div>
+        <div class="source-list">
+            <div class="source-item active"><b>NYC_TWIN_TOWERS</b><br><span style="opacity:0.5">29° Antenne Vector</span></div>
+            <div class="source-item"><b>THOLEN_CHURCH</b><br><span style="opacity:0.5">82.5° Ground Lock</span></div>
+            <div class="source-item"><b>SIRIUS_ANKER</b><br><span style="opacity:0.5">108° Sync Threshold</span></div>
+        </div>
+    </section>
+
+    <section class="column" style="border-left: 1px solid var(--border); border-right: 1px solid var(--border);">
+        <div class="col-header">AI Synthesis Terminal <span id="ai-status" style="color:var(--accent)">STASIS</span></div>
+        <div class="ai-engine">
+            <div class="ai-terminal" id="ai-terminal">
+                <div class="ai-response">
+                    <b>SYSTEM_READY:</b> Kinematica verplaatst naar LIVE_FEED cockpit. Terminal gereed voor data-injectie via de geïntegreerde sliders.
+                </div>
+            </div>
+            <div class="input-bar">
+                <span style="color:var(--ai-glow)">></span>
+                <input type="text" class="v-input" id="ai-query" placeholder="Bevraag de matrix..." onkeypress="handleQuery(event)">
+            </div>
+        </div>
+    </section>
+
+    <section class="column">
+        <div class="col-header">Omni-Bridge Viewport [LIVE_FEED]</div>
+        <div class="viewport-frame">
+            <iframe id="v-frame" src="antipodal.html"></iframe>
+            
+            <div class="cockpit-controls">
+                <div class="slider-box">
+                    <div class="slider-info">YAW (AZIMUTH) <span id="yaw-deg">0°</span></div>
+                    <input type="range" min="0" max="360" value="0" id="yaw-slider" oninput="processKinematica('yaw', this.value)">
+                </div>
+                <div class="slider-box">
+                    <div class="slider-info">PITCH (ELEVATIE) <span id="pitch-deg">0°</span></div>
+                    <input type="range" min="-90" max="90" value="0" id="pitch-slider" oninput="processKinematica('pitch', this.value)">
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script>
+    const frame = document.getElementById('v-frame');
+    const terminal = document.getElementById('ai-terminal');
+    const status = document.getElementById('ai-status');
+
+    function processKinematica(axis, val) {
+        document.getElementById(axis + '-deg').innerText = val + "°";
+        frame.contentWindow.postMessage({ type: 'VORTEX_MOVE', axis: axis, value: val }, '*');
+        if (axis === 'yaw') checkTriggers(val);
+    }
+
+    function checkTriggers(az) {
+        if (az == 29) injectAI("<b>DETECTIE: 29° AS (NYC)</b><br>Twin Tower vector geactiveerd in de geïntegreerde cockpit.");
+        if (az == 82) injectAI("<b>DETECTIE: 82.5° AS (THOLEN)</b><br>Grote Kerk resonantie stabiel op 1:3 helling.");
+        if (az == 108) injectAI("<b>SYNC_LOCK: 108° SIRIUS</b><br>Systeem vergrendeld op galactisch anker.");
+    }
+
+    function injectAI(content) {
+        status.innerText = "ANALYZED"; status.style.color = "var(--main)";
+        terminal.innerHTML += `<div class="ai-response">${content}</div>`;
+        terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function handleQuery(e) {
+        if (e.key === 'Enter' && e.target.value) {
+            terminal.innerHTML += `<div style="color:var(--main); font-size:0.7rem; margin-bottom:10px;">USER_QUERY: ${e.target.value}</div>`;
+            e.target.value = '';
+            setTimeout(() => { injectAI("Synthese voltooid vanuit NotebookLM bronnen."); }, 800);
+        }
+    }
+
+    setInterval(() => { document.getElementById('clock').innerText = new Date().toLocaleTimeString('nl-NL'); }, 1000);
+</script>
+
+</body>
+</html>
